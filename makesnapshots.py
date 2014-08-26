@@ -28,6 +28,7 @@ import time
 import sys
 import logging
 from config import config
+import time
 
 
 if (len(sys.argv) < 2):
@@ -78,10 +79,14 @@ ec2_region2_endpoint = config['ec2_region2_endpoint']
 sns_arn = config.get('arn')
 proxyHost = config.get('proxyHost')
 proxyPort = config.get('proxyPort')
-region2_copy = config.get('region2_copy', false)
+region2_period = config.get('region2_period', False)
 
 region = RegionInfo(name=ec2_region_name, endpoint=ec2_region_endpoint)
 region2 = RegionInfo(name=ec2_region2_name, endpoint=ec2_region2_endpoint)
+if region2_period == period:
+    region2_copy = True
+else:
+    region2_copy = False
 
 # Number of snapshots to keep
 keep_week = config['keep_week']
@@ -176,10 +181,11 @@ for vol in vols:
             logging.info(suc_message)
             total_creates += 1
             if region2_copy:
+                time.sleep(60)
                 current_snap_id = str(current_snap.id)
                 backup_snap = conn2.copy_snapshot(source_region=ec2_region_name, source_snapshot_id=current_snap_id, description=None, dry_run=False)
                 backup_message = 'Snapshot %s copied to region %s' % (backup_snap, region2)
-                print '    ' + backup_message
+                print '     ' + backup_message
                 logging.info(backup_message)
         except Exception, e:
             print "Unexpected error:", sys.exc_info()[0]
