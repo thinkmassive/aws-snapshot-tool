@@ -184,7 +184,7 @@ for vol in vols:
                 time.sleep(60)
                 current_snap_id = str(current_snap.id)
                 backup_snap = conn2.copy_snapshot(source_region=ec2_region_name, source_snapshot_id=current_snap_id, description=None, dry_run=False)
-                backup_message = 'Snapshot %s copied to region %s' % (backup_snap, region2)
+                backup_message = 'Snapshot %s copied to region %s' % (backup_snap, ec2_region2_name)
                 print '     ' + backup_message
                 logging.info(backup_message)
         except Exception, e:
