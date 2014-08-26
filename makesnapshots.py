@@ -73,11 +73,15 @@ aws_access_key = config['aws_access_key']
 aws_secret_key = config['aws_secret_key']
 ec2_region_name = config['ec2_region_name']
 ec2_region_endpoint = config['ec2_region_endpoint']
+ec2_region2_name = config['ec2_region2_name']
+ec2_region2_endpoint = config['ec2_region2_endpoint']
 sns_arn = config.get('arn')
 proxyHost = config.get('proxyHost')
 proxyPort = config.get('proxyPort')
+region2_copy = config.get('region2_copy', false)
 
 region = RegionInfo(name=ec2_region_name, endpoint=ec2_region_endpoint)
+region2 = RegionInfo(name=ec2_region2_name, endpoint=ec2_region2_endpoint)
 
 # Number of snapshots to keep
 keep_week = config['keep_week']
@@ -93,15 +97,23 @@ if proxyHost:
     # using roles
     if aws_access_key:
         conn = EC2Connection(aws_access_key, aws_secret_key, region=region, proxy=proxyHost, proxy_port=proxyPort)
+        if region2_copy:
+            conn2 = EC2Connection(aws_access_key, aws_secret_key, region=region2, proxy=proxyHost, proxy_port=proxyPort)
     else:
         conn = EC2Connection(region=region, proxy=proxyHost, proxy_port=proxyPort)
+        if region2_copy:
+            conn2 = EC2Connection(region=region2, proxy=proxyHost, proxy_port=proxyPort)
 else:
     # non proxy:
     # using roles
     if aws_access_key:
         conn = EC2Connection(aws_access_key, aws_secret_key, region=region)
+        if region2_copy:
+            conn2 = EC2Connection(aws_access_key, aws_secret_key, region=region2)
     else:
         conn = EC2Connection(region=region)
+        if region2_copy:
+            conn2 = EC2Connection(region=region2)
 
 # Connect to SNS
 if sns_arn:
@@ -163,6 +175,12 @@ for vol in vols:
             print '     ' + suc_message
             logging.info(suc_message)
             total_creates += 1
+            if region2_copy:
+                current_snap_id = str(current_snap.id)
+                backup_snap = conn2.copy_snapshot(source_region=ec2_region_name, source_snapshot_id=current_snap_id, description=None, dry_run=False)
+                backup_message = 'Snapshot %s copied to region %s' % (backup_snap, region2)
+                print '    ' + backup_message
+                logging.info(backup_message)
         except Exception, e:
             print "Unexpected error:", sys.exc_info()[0]
             logging.error(e)
