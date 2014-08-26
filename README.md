@@ -33,3 +33,7 @@ Usage
 Additional Notes
 =========
 The user that executes the script needs the following policies: see iam.policy.sample
+
+Region2 copy is in ALPHA!
+=========
+To copy snapshots to a second region for disaster recovery purposes, set region2_copy = true, and make sure ec2_region2_name and ec2_region2_endpoint are both set to a different region than ec2_region_name. This feature is currently in ALPHA because **snapshots in the second region are not automatically removed**.
